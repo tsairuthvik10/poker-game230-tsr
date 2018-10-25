@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include "LinkedList.h"
 
@@ -542,6 +543,17 @@ int main() {
 		srand(time(NULL));
 		Player player;
 		LinkedList<Card> the_deck;
+		ofstream file_;
+		ifstream infile;
+		infile.open("money.txt");
+		//check for error
+		if (infile.fail()) {
+			cerr << "Error opening file" << endl;
+			exit(1);
+		} 
+		int r;
+		int total_money;
+		infile >> r;
 		fill_deck(the_deck);
 		fill_hand(player.hand, the_deck);
 		while (true) {
@@ -549,7 +561,12 @@ int main() {
 			print_decksize(the_deck);
 			print_ante_message();
 			player.money--;
+			file_.open("money.txt");
+			file_ << player.money << endl;
+			file_.close();
 			player.print_money();
+			total_money = r + player.money;
+			cout << "Total Money:" << total_money << endl;
 			sort_hand(player.hand);
 			print_hand(player.hand, true);
 			if (!handle_input(player, the_deck)) break;
