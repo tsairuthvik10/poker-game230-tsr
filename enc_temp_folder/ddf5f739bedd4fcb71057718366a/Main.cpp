@@ -43,7 +43,7 @@ struct Card {
 			<< card.suit << " ";
 	};
 };
-//player who has money and another linked list called hand
+//Now the player who just has money and another linked list called hand
 struct Player {
 	LinkedList<Card> hand;
 	int money = 5;
@@ -107,7 +107,8 @@ void sort_hand(LinkedList<Card> &hand) {
 		hand.push_back(temp_hand[i]);
 	}
 }
-
+//If we are ever getting random cards from the deck and we run out, this is how we refill it
+//Maybe there is a better way to do this but creating the array wasn't too bad with copy/paste
 void fill_deck(LinkedList<Card> &deck) {
 	Card cards[52] = {
 		
@@ -121,7 +122,8 @@ void fill_deck(LinkedList<Card> &deck) {
 	}
 
 }
-
+//To get a random card from the deck, we find a random number between 0 and the size of the deck, then remove that card from the deck and put it into the hand
+//But if the deck size was 0, we have to refill it then remove any cards in the player's hand from it
 void get_random_card(LinkedList<Card> &hand, LinkedList<Card> &deck) {
 	if (deck.getSize() == 0) {
 		fill_deck(deck);
@@ -134,7 +136,11 @@ void get_random_card(LinkedList<Card> &hand, LinkedList<Card> &deck) {
 	hand.push_back(c);
 	deck.find_and_delete(c);
 }
-
+//We do a basic fill the hand until the hand is 5
+//The extra code is to set the card variable kept to true. We do this for the  print hand function. This used to not be a problem because
+//you could extrapolate from the amount of cards swapped which ones stayed, and they would be at the front.
+//This broke when we started sorting the hand which made it so not only the front cards were kept, they could be at any index
+//so we wrote this extra code
 void fill_hand(LinkedList<Card> &hand, LinkedList<Card> &deck) {
 	for (int i = 0; i < hand.getSize(); i++) {
 		Card c = hand.find_at_index(i);
@@ -145,7 +151,9 @@ void fill_hand(LinkedList<Card> &hand, LinkedList<Card> &deck) {
 		get_random_card(hand, deck);
 	}
 }
-
+//A simple way to print the hand using a char in our for loop
+//If the card was kept then print kept next to it, but not if this is the 'first' time the player is seeing this hand.
+//If it is, that means this is a new hand for the player and we wouldnt want to print kept next to 5 new cards
 void print_hand(LinkedList<Card> &hand, bool first) {
 
 	cout << endl << "Your hand:" << endl;
@@ -156,7 +164,10 @@ void print_hand(LinkedList<Card> &hand, bool first) {
 		cout << endl;
 	}
 }
-
+//First we get the letter of the card they are swapping, then the suit and face of the desired card. If it's in the deck, 
+//pull the card from the deck and put it in player's hand
+//Note we dont actually delete the card from the hand until we can see that the requested card is in the deck.
+//If it isn't, dont delete that card and just return false.
 bool swap_cards(LinkedList<Card> &hand, LinkedList<Card> &deck) {
 	cout << endl << "Please enter letter of the card you want to get rid of:";
 	string input;
@@ -198,7 +209,9 @@ bool swap_cards(LinkedList<Card> &hand, LinkedList<Card> &deck) {
 	cout << endl << "Sorry, that card isn't in the deck" << endl;
 	return false;
 }
-//check flush hand
+//The next block of functions is evaluating the poker hands
+//First is flush which get the suit of the first card, then checks the rest. If a non target suit is found, return false
+//If we made it through the for loop, that means we never returned false and we can return true;
 bool check_flush(const LinkedList<Card> &hand)
 {
 	Card c = hand.find_at_index(0);
@@ -209,7 +222,9 @@ bool check_flush(const LinkedList<Card> &hand)
 	}
 	return true;
 }
-//check straight hand
+//Sort of like flush, we get the first value in the hand then see if the next one is 1 + the last value
+//If it isnt, return false, if we make it through the loop, return true
+//Note that because we chose the sort hand optional objective, this function is MUCH easier
 bool check_straight(const LinkedList<Card> &hand)
 {
 	Card c = hand.find_at_index(0);
@@ -221,7 +236,11 @@ bool check_straight(const LinkedList<Card> &hand)
 	}
 	return true;
 }
-//check three of a kind
+//How we check pairs and three of a kinds is we make an array of ints that goes to 0-14
+//Initialize them all at 0
+//As we go through the hand, at the card's value in the int array increment that spot by 1
+//If any one spot got incremented 3 times, we have three of a kind and we return true
+//If we make it out of the for loop without returning true, we didn't find three of a kind and we can return false
 bool check_toak(const LinkedList<Card> &hand)
 {
 	int int_arr[15] = {};
@@ -237,7 +256,7 @@ bool check_toak(const LinkedList<Card> &hand)
 	return false;
 }
 
-//check four of a kind
+
 bool check_foak(const LinkedList<Card> &hand)
 {
 	int int_arr[15] = {};
@@ -252,7 +271,9 @@ bool check_foak(const LinkedList<Card> &hand)
 	}
 	return false;
 }
-//check two pairs
+//Here we do something similar to the three of a kind function, but now we are counting each time a slot has two or more
+//If we had two at two different indexes, that means we have two pair
+//Note that if a player has a full house they will win with three pair not two pair just because of the order the functions are called
 bool check_two_pair(const LinkedList<Card> &hand)
 {
 	int int_arr[15] = {};
@@ -269,7 +290,8 @@ bool check_two_pair(const LinkedList<Card> &hand)
 	if (counter >= 2) return true;
 	return false;
 }
-//check for a pair that is Jacks or higher
+//Check for pair is similar to pair except without the counter
+//Also we start checking the int array at 11 as that is Jacks or higher
 bool check_pair(const LinkedList<Card> &hand)
 {
 	int int_arr[15] = {};
@@ -284,7 +306,7 @@ bool check_pair(const LinkedList<Card> &hand)
 	}
 	return false;
 }
-//check for full house
+
 bool check_full_house(const LinkedList<Card> &hand)
 {
 	int int_arr[15] = {};
@@ -305,7 +327,7 @@ bool check_full_house(const LinkedList<Card> &hand)
 	}
 	return false;
 }
-//check for straight flush
+
 bool check_straight_flush(const LinkedList<Card> &hand)
 {
 	
@@ -320,7 +342,7 @@ bool check_straight_flush(const LinkedList<Card> &hand)
 	return true;
 
 }
-//check for royal flush
+
 bool check_royal_flush(const LinkedList<Card> &hand)
 {
 
@@ -336,7 +358,10 @@ bool check_royal_flush(const LinkedList<Card> &hand)
 	return true;
 
 }
-//evaluate the hand to get rewards
+//After the input from the user is good and we refresh the cards in the user's hand, we can evaluate it
+//Note that we check for the highest priority hands first 
+//This is so we return first as it doesnt matter if we have a lower hand than the won that returned
+//This function also handles the win/loss statements before returning
 int evaluate_hand(const LinkedList<Card> &hand) {
 	if (check_royal_flush(hand)) {
 		cout << endl << "You have a full house! You earned 800 dollars!" << endl;
@@ -362,6 +387,8 @@ int evaluate_hand(const LinkedList<Card> &hand) {
 		cout << endl << "You have a straight! You earned 5 dollars!" << endl;
 		return 5;
 	}
+	
+	
 	else if (check_toak(hand)) {
 		cout << endl << "You have three of a kind! You earned 3 dollars!" << endl;
 		return 3;
@@ -380,14 +407,21 @@ int evaluate_hand(const LinkedList<Card> &hand) {
 		return 0;
 	}
 }
-
+//We call this if the input was letter input and not one of the other options
+//We have to see if that input was acceptible. Let's step into this one
 bool evaluate_input(string input, LinkedList<Card> &hand, LinkedList<Card> &deck) {
+	//First, if the string is over five, just return. The biggest input is ABCDE which is 5 long
 	if (input.length() > 5) return false;
+	//Then make sure each char in the input is between A and E, out acceptible letters
+	//If any aren't, return false
 	for (int i = 0; i < input.length(); i++) {
 		if (input[i] < 'A' || input[i] > 'E') {
 			return false;
 		}
 	}
+	//Now we check for duplicates like AA, BB or DCED
+	//Make a holder string and start pushing chars into it from input
+	//If the holder already has that char in their string, return false
 	string holder;
 	for (int i = 0; i < input.length(); i++) {
 		if (holder.find(input[i]) != string::npos) {
@@ -395,6 +429,11 @@ bool evaluate_input(string input, LinkedList<Card> &hand, LinkedList<Card> &deck
 		}
 		holder.push_back(input[i]);
 	}
+	//If we got to this point it means the input was good
+	//Make holder 2 which is going to be a sorted version of input
+	//We do this because we can't delete A before E, the hand doesn't go to E after deleting A. It would be an out of bounds error for my linked list
+	//So we sort it then remove from the back
+	//We do this by finding the smallest char from input that's not already in holder 2 and pushing it in
 	string holder2;
 	while (holder2.length() < input.length()) {
 		char least = 100;
@@ -405,6 +444,11 @@ bool evaluate_input(string input, LinkedList<Card> &hand, LinkedList<Card> &deck
 		}
 		holder2.push_back(least);
 	}
+	//What we do here is we conver i to a char (sorta) by adding 65
+	//If that char is equal to the back of holder, then that means it is one of the cards the player was trying to save
+	//Save that card, and remove it from the back holder after we save it
+	//If it wasn't one of those cards, remove it from hand
+	//Note how we start at 4 and work backwards because we are deleting from the back (in order to not go out of bounds)
 	for (int i = 4; i >= 0; i--)
 	{
 		if (holder2.length() > 0 && i + 65 == (holder2.back())) {
@@ -414,11 +458,15 @@ bool evaluate_input(string input, LinkedList<Card> &hand, LinkedList<Card> &deck
 			hand.find_and_delete_at_index(i);
 		}
 	}
-
+	//Refill the hand and return true
 
 	fill_hand(hand, deck);
 	return true;
 }
+//This is the function that asks for then evaluates input
+//Half of these are just informational prints, and they don't return since they don't progress the game
+//The game only progresses on ALL, NONE, or good letter input from the player
+//Note that only exit return false, the rest either dont return or return true
 bool handle_input(Player &player, LinkedList<Card> &deck) {
 	string input;
 	bool waiting_for_action = true;
@@ -475,7 +523,14 @@ bool handle_input(Player &player, LinkedList<Card> &deck) {
 	}
 	return true;
 }
-
+//Finally, main
+//First seed rand
+//Make the player, the deck, fill the player's hand, take their money, then print all the options
+//If the player typed EXIT, break out of the game
+//If the player is out of money after the last round, break out of the game
+//Or just hit enter to do it again
+//Note that I added brackets to make my linked list variables out of scope before we get to the memory leaks functions
+//This way their destructors are called non explicitely so I'm not a bad
 int main() {
 	{
 		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF |
@@ -519,7 +574,8 @@ int main() {
 			cin.get();
 		}
 	}
-
+	//I haven't had leaks yet
+	//Every push calls a new, every pop calls a delete
 	_CrtDumpMemoryLeaks();
 	return 0;
 }
