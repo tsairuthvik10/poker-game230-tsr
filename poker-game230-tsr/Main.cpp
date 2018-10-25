@@ -114,10 +114,11 @@ void sort_hand(LinkedList<Card> &hand) {
 //Maybe there is a better way to do this but creating the array wasn't too bad with copy/paste
 void fill_deck(LinkedList<Card> &deck) {
 	Card cards[52] = {
-		{"Hearts", "Two", 2}, { "Hearts", "Three", 3 }, { "Hearts", "Four", 4 }, { "Hearts", "Five", 5 }, { "Hearts", "Six", 6 }, { "Hearts", "Seven", 7 }, { "Hearts", "Eight", 8 }, { "Hearts", "Nine", 9 }, { "Hearts", "Ten", 10}, { "Hearts" , "Jack", 11}, { "Hearts" , "Queen", 12}, { "Hearts", "King", 13 }, { "Hearts", "Ace", 14 },
+		
 		{ "Clubs", "Two", 2 },{ "Clubs", "Three", 3 },{ "Clubs", "Four", 4 },{ "Clubs", "Five", 5 },{ "Clubs", "Six", 6 },{ "Clubs", "Seven", 7 },{ "Clubs", "Eight", 8 },{ "Clubs", "Nine", 9 },{ "Clubs", "Ten", 10 },{ "Clubs" , "Jack", 11 },{ "Clubs" , "Queen", 12 },{ "Clubs", "King", 13 },{ "Clubs", "Ace", 14 },
-		{ "Spades", "Two", 2 },{ "Spades", "Three", 3 },{ "Spades", "Four", 4 },{ "Spades", "Five", 5 },{ "Spades", "Six", 6 },{ "Spades", "Seven", 7 },{ "Spades", "Eight", 8 },{ "Spades", "Nine", 9 },{ "Spades", "Ten", 10 },{ "Spades" , "Jack", 11 },{ "Spades" , "Queen", 12 },{ "Spades", "King", 13 },{ "Spades", "Ace", 14 },
 		{ "Diamonds", "Two", 2 },{ "Diamonds", "Three", 3 },{ "Diamonds", "Four", 4 },{ "Diamonds", "Five", 5 },{ "Diamonds", "Six", 6 },{ "Diamonds", "Seven", 7 },{ "Diamonds", "Eight", 8 },{ "Diamonds", "Nine", 9 },{ "Diamonds", "Ten", 10 },{ "Diamonds" , "Jack", 11 },{ "Diamonds" , "Queen", 12 },{ "Diamonds", "King", 13 },{ "Diamonds", "Ace", 14 },
+		{"Hearts", "Two", 2}, { "Hearts", "Three", 3 }, { "Hearts", "Four", 4 }, { "Hearts", "Five", 5 }, { "Hearts", "Six", 6 }, { "Hearts", "Seven", 7 }, { "Hearts", "Eight", 8 }, { "Hearts", "Nine", 9 }, { "Hearts", "Ten", 10}, { "Hearts" , "Jack", 11}, { "Hearts" , "Queen", 12}, { "Hearts", "King", 13 }, { "Hearts", "Ace", 14 },
+		{ "Spades", "Two", 2 },{ "Spades", "Three", 3 },{ "Spades", "Four", 4 },{ "Spades", "Five", 5 },{ "Spades", "Six", 6 },{ "Spades", "Seven", 7 },{ "Spades", "Eight", 8 },{ "Spades", "Nine", 9 },{ "Spades", "Ten", 10 },{ "Spades" , "Jack", 11 },{ "Spades" , "Queen", 12 },{ "Spades", "King", 13 },{ "Spades", "Ace", 14 },
 	};
 	for (int i = 0; i < 52; ++i) {
 		deck.push_back(cards[i]);
@@ -251,7 +252,23 @@ bool check_toak(const LinkedList<Card> &hand)
 		int_arr[c.val]++;
 	}
 	for (int i = 0; i < 15; i++) {
-		if (int_arr[i] >= 3) {
+		if (int_arr[i] == 3) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+bool check_foak(const LinkedList<Card> &hand)
+{
+	int int_arr[15] = {};
+	for (int i = 0; i < 5; i++) {
+		Card c = hand.find_at_index(i);
+		int_arr[c.val]++;
+	}
+	for (int i = 0; i < 15; i++) {
+		if (int_arr[i] >= 4) {
 			return true;
 		}
 	}
@@ -292,23 +309,94 @@ bool check_pair(const LinkedList<Card> &hand)
 	}
 	return false;
 }
+
+bool check_full_house(const LinkedList<Card> &hand)
+{
+	int int_arr[15] = {};
+	int atoak = 0;
+	for (int i = 0; i < 5; i++) {
+		Card c = hand.find_at_index(i);
+		int_arr[c.val]++;
+	}
+	for (int i = 0; i < 15; i++) {
+		if (int_arr[i] == 3) {
+			atoak = 1;
+		}
+	}
+	for (int i = 0; i < 15; i++) {
+		if ((int_arr[i] == 2) && (atoak == 1)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool check_straight_flush(const LinkedList<Card> &hand)
+{
+	
+	Card c = hand.find_at_index(0);
+	int target_val = c.val + 1;
+	string target_suit = c.suit;
+	for (int i = 1; i < 5; i++) {
+		c = hand.find_at_index(i);
+		if ((c.val != target_val) || (c.suit != target_suit)) return false;
+		target_val++;
+	}
+	return true;
+
+}
+
+bool check_royal_flush(const LinkedList<Card> &hand)
+{
+
+	Card c = hand.find_at_index(0);
+	c.val = 10;
+	int target_val = c.val + 1;
+	string target_suit = c.suit;
+	for (int i = 1; i < 5; i++) {
+		c = hand.find_at_index(i);
+		if ((c.val != target_val) || (c.suit != target_suit)) return false;
+		target_val++;
+	}
+	return true;
+
+}
 //After the input from the user is good and we refresh the cards in the user's hand, we can evaluate it
 //Note that we check for the highest priority hands first 
 //This is so we return first as it doesnt matter if we have a lower hand than the won that returned
 //This function also handles the win/loss statements before returning
 int evaluate_hand(const LinkedList<Card> &hand) {
-	if (check_flush(hand)) {
+	if (check_royal_flush(hand)) {
+		cout << endl << "You have a full house! You earned 800 dollars!" << endl;
+		return 800;
+	}
+	else if (check_straight_flush(hand)) {
+		cout << endl << "You have a straight flush! You earned 50 dollars!" << endl;
+		return 50;
+	}
+	else if (check_foak(hand)) {
+		cout << endl << "You have four of a kind! You earned 25 dollars!" << endl;
+		return 25;
+	}
+	else if (check_full_house(hand)) {
+		cout << endl << "You have a full house! You earned 9 dollars!" << endl;
+		return 9;
+	}
+	else if (check_flush(hand)) {
 		cout << endl << "You have a flush! You earned 6 dollars!" << endl;
 		return 6;
 	}
 	else if (check_straight(hand)) {
-		cout << endl << "You have a straight! You earned 4 dollars!" << endl;
-		return 4;
+		cout << endl << "You have a straight! You earned 5 dollars!" << endl;
+		return 5;
 	}
+	
+	
 	else if (check_toak(hand)) {
 		cout << endl << "You have three of a kind! You earned 3 dollars!" << endl;
 		return 3;
 	}
+	
 	else if (check_two_pair(hand)) {
 		cout << endl << "You have two pairs! You earned 2 dollars!" << endl;
 		return 2;
